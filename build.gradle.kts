@@ -13,7 +13,12 @@ repositories {
 }
 
 dependencies {
-  implementation(kotlin("stdlib"))
+  implementation(kotlin("stdlib-jdk8"))
+
+  testApi("org.junit.jupiter:junit-jupiter-api:5.8.2")
+  testImplementation("com.mercateo:test-clock:1.0.2")
+  testImplementation("io.strikt:strikt-core:0.33.0")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 }
 
 val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
@@ -26,6 +31,10 @@ val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
 
 java {
   withSourcesJar()
+}
+
+tasks.named<Test>("test") {
+  useJUnitPlatform()
 }
 
 publishing {
@@ -60,7 +69,7 @@ publishing {
   }
   repositories {
     maven {
-      url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+      url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
       credentials {
         username = project.findProperty("sonatypeUser") as? String
         password = project.findProperty("sonatypePassword") as? String

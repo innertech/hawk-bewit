@@ -47,13 +47,13 @@ class HawkBewitTest {
   }
 
   @Test
-  fun `An expired bewit is bad`() {
+  fun `An expired bewit raises an Expired result`() {
     with(HawkBewit(testClock)) {
       val ttl = 1.minutes.toJavaDuration()
       val bewit = generate(creds1, uri1, ttl)
       testClock.fastForward(2.minutes.toJavaDuration())
       expectThat(validate(creds1, uri1, bewit)) isEqualTo
-        BewitValidationResult.Bad("The bewit has expired")
+        BewitValidationResult.Expired((clockSeed + ttl).toInstant())
     }
   }
 

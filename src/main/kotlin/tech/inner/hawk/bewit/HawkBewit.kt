@@ -12,6 +12,7 @@ import javax.crypto.spec.SecretKeySpec
 
 sealed class BewitValidationResult {
   data class Bad(val message: String): BewitValidationResult()
+  data class Expired(val expiry: Instant): BewitValidationResult()
   data class AuthenticationError(val message: String): BewitValidationResult()
   data class Good(val expiry: Instant): BewitValidationResult()
 }
@@ -100,7 +101,7 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
     }
 
     if (clock.instant() > bewitData.expiry) {
-      return BewitValidationResult.Bad("The bewit has expired")
+      return BewitValidationResult.Expired(bewitData.expiry)
     }
 
     val calculatedMac = calculateMac(

@@ -1,6 +1,6 @@
 # Hawk(ish) Bewit — Signed Links
 
-image:https://img.shields.io/maven-central/v/tech.inner/hawkish-bewit[Maven Central]
+image:https://img.shields.io/maven-central/v/tech.inner/hawkish-bewit[Maven Central,link="https://search.maven.org/search?q=g:tech.inner+a:hawkish-bewit"]
 image:https://img.shields.io/github/license/innertech/hawkish-bewit["GitHub license",link="https://github.com/innertech/hawkish-bewit/blob/master/LICENSE"]
 
 A loose implementation of https://github.com/mozilla/hawk/blob/main/API.md#single-uri-authorization[Hawk Bewit] in Kotlin.

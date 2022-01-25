@@ -1,5 +1,8 @@
 # Hawk(ish) Bewit — Signed Links
 
+image:https://img.shields.io/maven-central/v/tech.inner/hawkish-bewit[Maven Central]
+image:https://img.shields.io/github/license/innertech/hawkish-bewit["GitHub license",link="https://github.com/innertech/hawkish-bewit/blob/master/LICENSE"]
+
 A loose implementation of https://github.com/mozilla/hawk/blob/main/API.md#single-uri-authorization[Hawk Bewit] in Kotlin.
 
 While https://github.com/mozilla/hawk[Hawk] never gained wide traction as an HTTP authentication scheme, we still find common need for an S3-style URI authorization scheme, in which a URI can be:

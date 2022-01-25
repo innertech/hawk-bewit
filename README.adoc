@@ -1,0 +1,28 @@
+# Hawk Bewit — Signed Links
+
+An implementation of https://github.com/mozilla/hawk/blob/main/API.md#single-uri-authorization[Hawk Bewit] in Kotlin.
+
+While https://github.com/mozilla/hawk[Hawk] never gained wide traction as an HTTP authentication scheme, we still find common need for an S3-style URI authorization scheme, in which a URI can be:
+
+[loweralpha]
+. signed to validate that it has not been tampered with, and
+. set to expire.
+
+Hawk bewits serve this purpose well, without re-inventing the wheel.
+However, we do not implement the header-mode and the `dlg`, `app` and `ext` attributes.
+This is a single-purpose library inspired by Hawk, not a full hawk-compatible implementation.
+
+## Use Cases
+
+. Sign resource links, like images, for temporary access from locations that do not support the underlying site auth protocol e.g. clipboards and external applications.
+
+. Sign links sent to users out of band e.g. emails.
+
+. Sign links sent to 3rd parties to easily access some resource for a limited time.
+
+. etc.
+
+## Java Compatibility
+
+Java code should be able to use this implementation as well, but that has not been well tested.
+PRs to improve Java compatibility will be accepted.

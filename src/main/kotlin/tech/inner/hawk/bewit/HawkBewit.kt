@@ -30,7 +30,8 @@ sealed class BewitValidationResult {
  */
 class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
   companion object {
-    const val HAWK_VERSION = "1"
+    // not compatible with Hawk directly, we validate scheme as well
+    const val HAWK_VERSION = "1a"
     const val AUTH_TYPE_BEWIT = "BEWIT"
 
     private const val DEFAULT_HTTP_PORT = 80
@@ -95,7 +96,7 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
     }
 
     if (credentials.keyId != bewitData.keyId) {
-      return BewitValidationResult.Bad("The key id in the bewit is not recognised")
+      return BewitValidationResult.Bad("Key id mismatch")
     }
 
     if (clock.instant() > bewitData.expiry) {
@@ -154,6 +155,9 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
         append('?')
         append(uri.rawQuery)
       }
+      // add scheme to the auth, not part of the original hawk spec
+      append('\n')
+      append(uri.scheme.lowercase())
       append('\n')
       append(uri.host.lowercase())
       append('\n')
@@ -172,7 +176,7 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
   private fun decodeBewit(bewit: String): BewitData {
     val decodedBewit = bewit.base64UrlToBytes().decodeToString()
     val bewitFields = decodedBewit.split('\\')
-    if (bewitFields.size != BEWIT_FIELDS) error("The bewit did not contain the correct number of values")
+    if (bewitFields.size != BEWIT_FIELDS) error("Invalid bewit")
     return BewitData(
       keyId = bewitFields[BEWIT_FIELD_ID],
       expiry = Instant.ofEpochSecond(bewitFields[BEWIT_FIELD_EXPIRY].toLong()),

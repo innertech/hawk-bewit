@@ -1,7 +1,6 @@
 package tech.inner.hawk.bewit
 
-import com.chrynan.uri.core.Uri
-import com.chrynan.uri.core.fromString
+import com.eygraber.uri.Uri
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlin.test.Test
@@ -19,17 +18,17 @@ class HawkBewitMppTest {
     key = "32fe2DAF2DE9DcC5AE434Aa7C24CFae3ed42dad3eCe7CED5abf443fbbDFfcAdA",
     algorithm = HawkCredentials.Algorithm.SHA256,
   )
-  private val uri1 = Uri.fromString("https://localhost:1111/abc")
-  private val uri1DiffScheme = Uri.fromString("http://localhost:1111/abc")
-  private val uri1DiffPath = Uri.fromString("https://localhost:1111/abcd")
-  private val uri1DiffHost = Uri.fromString("https://otherhost:1111/abc")
-  private val uri1DiffPort = Uri.fromString("https://localhost:1112/abc")
+  private val uri1 = Uri.parse("https://localhost:1111/abc")
+  private val uri1DiffScheme = Uri.parse("http://localhost:1111/abc")
+  private val uri1DiffPath = Uri.parse("https://localhost:1111/abcd")
+  private val uri1DiffHost = Uri.parse("https://otherhost:1111/abc")
+  private val uri1DiffPort = Uri.parse("https://localhost:1112/abc")
 
-  private val uri2 = Uri.fromString("https://localhost:1111/testpath/subpath?param1=val1&param2=val2")
-  private val uri2DiffQuery = Uri.fromString("https://localhost:1111/testpath/subpath?param1=val1&param2=val3")
+  private val uri2 = Uri.parse("https://localhost:1111/testpath/subpath?param1=val1&param2=val2")
+  private val uri2DiffQuery = Uri.parse("https://localhost:1111/testpath/subpath?param1=val1&param2=val3")
 
-  private val uri3DefaultPort = Uri.fromString("https://localhost/abc")
-  private val uri3SetPort = Uri.fromString("https://localhost:444/abc")
+  private val uri3DefaultPort = Uri.parse("https://localhost/abc")
+  private val uri3SetPort = Uri.parse("https://localhost:444/abc")
 
   private val clockSeed = Instant.parse("2022-01-25T05:00:00.000Z")
   private val testClock = Clock.Fixed(clockSeed)

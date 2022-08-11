@@ -64,8 +64,7 @@ kotlin {
     val commonMain by getting {
       dependencies {
         implementation(kotlin("stdlib-jdk8"))
-        // implementation("com.eygraber:uri-kmp:0.0.6")
-        implementation("com.chrynan.uri:uri-core:0.4.0")
+        implementation("com.eygraber:uri-kmp:0.0.6")
 
         implementation("com.squareup.okio:okio:3.2.0")
         implementation("io.matthewnelson.kotlin-components:encoding-base64:1.1.3")

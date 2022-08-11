@@ -1,7 +1,6 @@
 package tech.inner.hawk.bewit
 
-import com.chrynan.uri.core.Uri
-import com.chrynan.uri.core.fromString
+import com.eygraber.uri.Uri
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import okio.Buffer
@@ -130,7 +129,7 @@ class HawkBewit(private val clock: Clock = Clock.System) {
    * @param url The encoded URL string.
    */
   fun hawkUnsignedUri(url: String): Uri =
-    Uri.fromString(url)
+    Uri.parse(url)
 
   private fun calculateMac(
     credentials: HawkCredentials,

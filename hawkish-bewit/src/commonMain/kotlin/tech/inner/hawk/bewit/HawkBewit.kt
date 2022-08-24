@@ -1,14 +1,11 @@
 package tech.inner.hawk.bewit
 
-import java.net.URI
-import java.net.URL
-import java.net.URLDecoder
-import java.security.MessageDigest
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
+import com.chrynan.uri.core.Uri
+import com.chrynan.uri.core.fromString
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import okio.Buffer
+import kotlin.time.Duration
 
 sealed class BewitValidationResult {
   data class Bad(val message: String): BewitValidationResult()
@@ -29,7 +26,7 @@ sealed class BewitValidationResult {
  * applications like Microsoft Word that appear to strip query parameters in their latest incarnations.
  * The bewit could even be sent out of band for certain use cases.
  */
-class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
+class HawkBewit(private val clock: Clock = Clock.System) {
   companion object {
     // not compatible with Hawk directly, we validate scheme as well
     const val HAWK_VERSION = "1a"
@@ -57,12 +54,12 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
    */
   fun generate(
     credentials: HawkCredentials,
-    uri: URI,
+    uri: Uri,
     ttl: Duration,
   ): String {
-    require(!ttl.isNegative) { "TTL must be a positive duration" }
+    require(!ttl.isNegative()) { "TTL must be a positive duration" }
 
-    val expiry = clock.instant().plus(ttl)
+    val expiry = clock.now() + ttl
     val macBase64 = calculateMac(
       credentials,
       expiry,
@@ -72,7 +69,7 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
     val bewit = buildString {
       append(credentials.keyId)
       append('\\')
-      append(expiry.epochSecond)
+      append(expiry.epochSeconds)
       append('\\')
       append(macBase64)
       append('\\')
@@ -89,7 +86,7 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
    * [HawkBewit]). This library makes no assumptions about where the bewit was stored between [generate] and this
    * call.
    */
-  fun validate(credentials: HawkCredentials, uri: URI, bewit: String): BewitValidationResult {
+  fun validate(credentials: HawkCredentials, uri: Uri, bewit: String): BewitValidationResult {
     val bewitData = try {
       decodeBewit(bewit)
     } catch (e: IllegalStateException) {
@@ -100,7 +97,7 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
       return BewitValidationResult.Bad("Key id mismatch")
     }
 
-    if (clock.instant() > bewitData.expiry) {
+    if (clock.now() > bewitData.expiry) {
       return BewitValidationResult.Expired(bewitData.expiry)
     }
 
@@ -110,9 +107,9 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
       uri,
     )
 
-    // uses a constant-time algorithm to avoid timing attacks
+    // TODO use a constant-time algorithm to avoid timing attacks like JVM's MessageDigest.isEqual
     // https://codahale.com/a-lesson-in-timing-attacks/
-    if (!MessageDigest.isEqual(calculatedMac, bewitData.mac)) {
+    if (!calculatedMac.contentEquals(bewitData.mac)) {
       return BewitValidationResult.AuthenticationError("MAC mismatch")
     }
 
@@ -132,13 +129,13 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
    *
    * @param url The encoded URL string.
    */
-  fun hawkUnsignedUri(url: String): URI =
-    URL(url).let { URI(it.protocol, it.host, URLDecoder.decode(it.path, Charsets.UTF_8), it.query, it.ref) }
+  fun hawkUnsignedUri(url: String): Uri =
+    Uri.fromString(url)
 
   private fun calculateMac(
     credentials: HawkCredentials,
     timestamp: Instant,
-    uri: URI,
+    uri: Uri,
   ): ByteArray {
     val hawkString = buildString(1024) {
       append("hawk.")
@@ -146,21 +143,21 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
       append('.')
       append(AUTH_TYPE_BEWIT)
       append('\n')
-      append(timestamp.epochSecond)
+      append(timestamp.epochSeconds)
       append('\n')
       append('\n')
       append("GET")
       append('\n')
-      append(uri.rawPath)
+      append(uri.path)
       if (uri.query != null) {
         append('?')
-        append(uri.rawQuery)
+        append(uri.query)
       }
       // add scheme to the auth, not part of the original hawk spec
       append('\n')
-      append(uri.scheme.lowercase())
+      append(uri.scheme?.lowercase() ?: "https")
       append('\n')
-      append(uri.host.lowercase())
+      append(uri.host?.lowercase() ?: "")
       append('\n')
       append(uriPort(uri))
     }
@@ -169,32 +166,39 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
   }
 
   private fun calculateMac(credentials: HawkCredentials, text: String): ByteArray {
-    val mac = Mac.getInstance(credentials.algorithm.jceAlgorithmName)
-    mac.init(SecretKeySpec(credentials.key.encodeToByteArray(), credentials.algorithm.jceAlgorithmName))
-    return mac.doFinal(text.encodeToByteArray())
+    val plaintextBuffer = Buffer().write(text.encodeToByteArray())
+    val keyBuffer = Buffer().write(credentials.key.encodeToByteArray())
+
+    val hmac = when (credentials.algorithm) {
+      HawkCredentials.Algorithm.SHA1 -> plaintextBuffer.hmacSha1(keyBuffer.readByteString())
+      HawkCredentials.Algorithm.SHA256 -> plaintextBuffer.hmacSha256(keyBuffer.readByteString())
+    }
+
+    return hmac.toByteArray()
   }
 
   private fun decodeBewit(bewit: String): BewitData {
-    val decodedBewit = bewit.base64UrlToBytes().decodeToString()
+    val decodedBewit = bewit.base64UrlToBytes()?.decodeToString() ?: error("Invalid bewit")
     val bewitFields = decodedBewit.split('\\')
     if (bewitFields.size != BEWIT_FIELDS) error("Invalid bewit")
     return BewitData(
       keyId = bewitFields[BEWIT_FIELD_ID],
-      expiry = Instant.ofEpochSecond(bewitFields[BEWIT_FIELD_EXPIRY].toLong()),
-      mac = bewitFields[BEWIT_FIELD_MAC].base64UrlToBytes(),
+      expiry = Instant.fromEpochSeconds(bewitFields[BEWIT_FIELD_EXPIRY].toLong()),
+      mac = bewitFields[BEWIT_FIELD_MAC].base64UrlToBytes() ?: error("Invalid bewit"),
     )
   }
 
-  private fun uriPort(uri: URI): Int {
+  private fun uriPort(uri: Uri): Int {
     fun defaultPort() = when (uri.scheme) {
       "http" -> DEFAULT_HTTP_PORT
       "https" -> DEFAULT_HTTPS_PORT
       else -> error("Unknown URI scheme \"" + uri.scheme + "\"")
     }
 
-    return when (uri.port) {
+    return when (val p = uri.port) {
+      null -> defaultPort()
       -1 -> defaultPort()
-      else -> uri.port
+      else -> p
     }
   }
 }

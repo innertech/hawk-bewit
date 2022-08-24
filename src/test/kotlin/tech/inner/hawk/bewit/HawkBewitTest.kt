@@ -14,12 +14,12 @@ class HawkBewitTest {
   private val creds1 = HawkCredentials(
     keyId = "9aA4bFc9df",
     key = "4fDE242CacAFdEAFcb5e5b44CFfd7cf4adD53A4AfF32CF5deD7A92facDEC4b33",
-    algorith = HawkCredentials.Algorithm.SHA256,
+    algorithm = HawkCredentials.Algorithm.SHA256,
   )
   private val creds2 = HawkCredentials(
     keyId = "545D9dC9d7",
     key = "32fe2DAF2DE9DcC5AE434Aa7C24CFae3ed42dad3eCe7CED5abf443fbbDFfcAdA",
-    algorith = HawkCredentials.Algorithm.SHA256,
+    algorithm = HawkCredentials.Algorithm.SHA256,
   )
   private val uri1 = URI("https://localhost:1111/abc")
   private val uri1DiffScheme = URI("http://localhost:1111/abc")

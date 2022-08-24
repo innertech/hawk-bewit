@@ -169,8 +169,8 @@ class HawkBewit(private val clock: Clock = Clock.systemUTC()) {
   }
 
   private fun calculateMac(credentials: HawkCredentials, text: String): ByteArray {
-    val mac = Mac.getInstance(credentials.algorith.jceAlgorithName)
-    mac.init(SecretKeySpec(credentials.key.encodeToByteArray(), credentials.algorith.jceAlgorithName))
+    val mac = Mac.getInstance(credentials.algorithm.jceAlgorithmName)
+    mac.init(SecretKeySpec(credentials.key.encodeToByteArray(), credentials.algorithm.jceAlgorithmName))
     return mac.doFinal(text.encodeToByteArray())
   }
 

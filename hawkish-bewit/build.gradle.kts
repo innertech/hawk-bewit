@@ -65,13 +65,13 @@ kotlin {
     }
     val commonMain by getting {
       dependencies {
+        api("com.chrynan.uri:uri-core:0.4.0")
+        api("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+
         implementation(kotlin("stdlib-jdk8"))
-        // implementation("com.eygraber:uri-kmp:0.0.6")
-        implementation("com.chrynan.uri:uri-core:0.4.0")
 
         implementation("com.squareup.okio:okio:3.2.0")
         implementation("io.matthewnelson.kotlin-components:encoding-base64:1.1.3")
-        implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
       }
     }
 
@@ -174,7 +174,7 @@ publishing {
     artifact(javadocJar.get())
     pom {
       name.set(project.name)
-      description.set("Signed URLs loosely using Hawk Bewits")
+      description.set("Signed URLs using Hawk Bewits")
       url.set("https://github.com/innertech/hawk-bewit")
       licenses {
         license {

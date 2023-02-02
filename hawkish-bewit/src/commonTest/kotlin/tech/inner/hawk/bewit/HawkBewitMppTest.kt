@@ -86,7 +86,7 @@ class HawkBewitMppTest {
       val ttl = 1.minutes
       val bewit = generate(creds1, uri1, ttl)
       assertEquals(
-      validate(creds1, uri2, bewit),
+        validate(creds1, uri2, bewit),
         BewitValidationResult.AuthenticationError("MAC mismatch")
       )
     }
@@ -98,7 +98,7 @@ class HawkBewitMppTest {
       val ttl = 1.minutes
       val bewit = generate(creds1, uri1, ttl)
       assertEquals(
-      validate(creds1.copy(keyId = "abc"), uri1, bewit),
+        validate(creds1.copy(keyId = "abc"), uri1, bewit),
         BewitValidationResult.Bad("Key id mismatch")
       )
     }
@@ -110,8 +110,32 @@ class HawkBewitMppTest {
       val ttl = 1.minutes
       val bewit = generate(creds1, uri1, ttl)
       assertEquals(
-      validate(creds2, uri1, bewit),
+        validate(creds2, uri1, bewit),
         BewitValidationResult.Bad("Key id mismatch")
+      )
+    }
+  }
+
+  @Test
+  fun authenticationFailsNoCredentialsForKeyId() {
+    with(HawkBewit(testClock)) {
+      val ttl = 1.minutes
+      val bewit = generate(creds1, uri1, ttl)
+      assertEquals(
+        validate(uri1, bewit) { null },
+        BewitValidationResult.Bad("No credentials for key id 9aA4bFc9df")
+      )
+    }
+  }
+
+  @Test
+  fun authenticationSucceedsCredentialsLookupByKeyId() {
+    with(HawkBewit(testClock)) {
+      val ttl = 1.minutes
+      val bewit = generate(creds1, uri1, ttl)
+      assertEquals(
+        validate(uri1, bewit) { k -> if (k == creds1.keyId) creds1 else null },
+        BewitValidationResult.Good((clockSeed + ttl))
       )
     }
   }
@@ -129,7 +153,7 @@ class HawkBewitMppTest {
         .toBase64Url()
 
       assertEquals(
-      validate(creds1, uri1, bewitNoKey),
+        validate(creds1, uri1, bewitNoKey),
         BewitValidationResult.Bad("Invalid bewit")
       )
     }
@@ -150,7 +174,7 @@ class HawkBewitMppTest {
         .toBase64Url()
 
       assertEquals(
-      validate(creds1, uri1, bewitNoMac),
+        validate(creds1, uri1, bewitNoMac),
         BewitValidationResult.AuthenticationError("MAC mismatch")
       )
     }
@@ -163,7 +187,7 @@ class HawkBewitMppTest {
       val bewit = generate(creds1, uri1, ttl)
 
       assertEquals(
-      validate(creds1, uri1DiffPath, bewit),
+        validate(creds1, uri1DiffPath, bewit),
         BewitValidationResult.AuthenticationError("MAC mismatch")
       )
       assertEquals(
@@ -184,7 +208,7 @@ class HawkBewitMppTest {
       val bewit = generate(creds1, uri3DefaultPort, ttl)
 
       assertEquals(
-      validate(creds1, uri3SetPort, bewit),
+        validate(creds1, uri3SetPort, bewit),
         BewitValidationResult.AuthenticationError("MAC mismatch")
       )
     }
@@ -197,7 +221,7 @@ class HawkBewitMppTest {
       val bewit = generate(creds1, uri1, ttl)
 
       assertEquals(
-      validate(creds1, uri1DiffScheme, bewit),
+        validate(creds1, uri1DiffScheme, bewit),
         BewitValidationResult.AuthenticationError("MAC mismatch")
       )
     }
@@ -210,7 +234,7 @@ class HawkBewitMppTest {
       val bewit = generate(creds1, uri2, ttl)
 
       assertEquals(
-      validate(creds1, uri2DiffQuery, bewit),
+        validate(creds1, uri2DiffQuery, bewit),
         BewitValidationResult.AuthenticationError("MAC mismatch")
       )
     }

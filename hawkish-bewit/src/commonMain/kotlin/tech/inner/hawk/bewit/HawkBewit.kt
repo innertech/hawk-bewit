@@ -86,12 +86,32 @@ class HawkBewit(private val clock: Clock = Clock.System) {
    * [HawkBewit]). This library makes no assumptions about where the bewit was stored between [generate] and this
    * call.
    */
-  fun validate(credentials: HawkCredentials, uri: Uri, bewit: String): BewitValidationResult {
+  fun validate(credentials: HawkCredentials, uri: Uri, bewit: String): BewitValidationResult =
+    validate(uri, bewit) { credentials }
+
+  /**
+   * Given credentials and a URI (unstuffed of any bewit), and the bewit itself, validate that the bewit is valid
+   * for the provided URI.
+   *
+   * The bewit is provided as a parameter rather than extracted from the passed [URI]. The spec states the bewit
+   * should be a query parameter, but it is the caller's responsibility to handle the bewit (see the docs for
+   * [HawkBewit]). This library makes no assumptions about where the bewit was stored between [generate] and this
+   * call.
+   *
+   * This version of [validate] obtains credentials from the passed in function which is provided the key id
+   * present in the Bewit -- this allows the caller to use a different credential for each key id. If the
+   * credentials function returns null, the Bewit is considered invalid.
+   */
+  @Suppress("ReturnCount", "MemberVisibilityCanBePrivate")
+  fun validate(uri: Uri, bewit: String, credentialsFn: (String) -> HawkCredentials?): BewitValidationResult {
     val bewitData = try {
       decodeBewit(bewit)
     } catch (e: IllegalStateException) {
       return BewitValidationResult.Bad(e.message ?: "Illegal bewit format")
     }
+
+    val credentials = credentialsFn(bewitData.keyId)
+      ?: return BewitValidationResult.Bad("No credentials for key id ${bewitData.keyId}")
 
     if (credentials.keyId != bewitData.keyId) {
       return BewitValidationResult.Bad("Key id mismatch")
@@ -155,7 +175,7 @@ class HawkBewit(private val clock: Clock = Clock.System) {
       }
       // add scheme to the auth, not part of the original hawk spec
       append('\n')
-      append(uri.scheme?.lowercase() ?: "https")
+      append(uri.scheme.lowercase())
       append('\n')
       append(uri.host?.lowercase() ?: "")
       append('\n')

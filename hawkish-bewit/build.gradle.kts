@@ -16,6 +16,8 @@ repositories {
 }
 
 kotlin {
+  jvmToolchain(17)
+
   android {
     publishAllLibraryVariants()
   }
@@ -111,6 +113,7 @@ kotlin {
 }
 
 android {
+  namespace = "tech.inner.hawk.bewit"
   compileSdk = LibraryConstants.Android.compileSdkVersion
 
   defaultConfig {
@@ -128,6 +131,14 @@ android {
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+  }
+
+  publishing {
+    multipleVariants {
+      allVariants()
+      withSourcesJar()
+      withJavadocJar()
+    }
   }
 
   tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
@@ -195,17 +206,21 @@ publishing {
       }
     }
   }
+  repositories {
+    maven {
+      name = "GitHub"
+      url = uri("https://maven.pkg.github.com/innertech/hawkish-bewit")
+      credentials {
+        username = project.findProperty("githubRepoUser") as? String
+        password = project.findProperty("githubRepoToken") as? String
+      }
+    }
+  }
 }
 
 signing {
   useGpgCmd()
   sign(publishing.publications)
-}
-
-kotlin {
-  jvmToolchain {
-    languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_17.majorVersion))
-  }
 }
 
 /*

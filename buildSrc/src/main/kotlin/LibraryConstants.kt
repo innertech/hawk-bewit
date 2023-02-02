@@ -1,7 +1,7 @@
 object LibraryConstants {
   const val group = "tech.inner"
   const val owner = "innertech"
-  const val versionName = "1.2"
+  const val versionName = "1.3"
   const val versionCode = 1
 
   object Android {
